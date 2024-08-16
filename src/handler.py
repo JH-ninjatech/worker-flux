@@ -92,7 +92,7 @@ def generate_image(job):
         height=job_input["height"],
         width=job_input["width"],
         num_images_per_prompt=job_input["num_images"],
-        num_inference_steps=4,
+        num_inference_steps=job_input["num_inference_steps"],
         guidance_scale=0.0,
         max_sequence_length=256,
         generator=generator,
