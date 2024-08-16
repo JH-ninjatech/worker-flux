@@ -88,11 +88,10 @@ def generate_image(job):
     # Generate latent image using pipe
     images = MODEL.model(
         prompt=job_input["prompt"],
-        negative_prompt=job_input["negative_prompt"],
         height=job_input["height"],
         width=job_input["width"],
-        num_images_per_prompt=job_input["num_images"],
         num_inference_steps=job_input["num_inference_steps"],
+        num_images_per_prompt=job_input["num_images"],
         guidance_scale=0.0,
         max_sequence_length=256,
         generator=generator,
