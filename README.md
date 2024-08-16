@@ -1,12 +1,12 @@
 <div align="center">
 
-<h1>Stable Diffusion XL | Worker</h1>
+<h1>FLUX | Worker</h1>
 
 [![CI | Test Worker](https://github.com/runpod-workers/worker-sdxl/actions/workflows/CI-test_worker.yml/badge.svg)](https://github.com/runpod-workers/worker-sdxl/actions/workflows/CI-test_worker.yml)
 &nbsp;
 [![CD | Dev Docker Image](https://github.com/runpod-workers/worker-sdxl/actions/workflows/CD-docker_dev.yml/badge.svg)](https://github.com/runpod-workers/worker-sdxl/actions/workflows/CD-docker_dev.yml)
 
-🚀 | RunPod implementation of SDXL for serverless deployment.
+🚀 | RunPod implementation of FLUX for serverless deployment.
 </div>
 
 ## 📖 | Getting Started
@@ -31,7 +31,3 @@ This repository is setup to automatically build and push a docker image to the G
 The `CD-docker_dev.yml` file will build the image and push it to the `dev` tag, while the `CD-docker_release.yml` file will build the image on releases and tag it with the release version.
 
 The `CI-test_worker.yml` file will test the worker using the input provided by the `--test_input` argument when calling the file containing your handler. Be sure to update this workflow to install any dependencies you need to run your tests.
-
-## 🔗 | Links
-
-🐳 [Docker Container](https://hub.docker.com/r/runpod/ai-api-sdxl)
