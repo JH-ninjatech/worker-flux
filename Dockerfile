@@ -6,15 +6,16 @@ ENV HF_HUB_ENABLE_HF_TRANSFER=0
 
 # Install Python dependencies (Worker Template)
 COPY builder/requirements.txt /requirements.txt
-RUN python -m pip install --upgrade pip && \
-    python -m pip install --upgrade -r /requirements.txt --no-cache-dir && \
+RUN python3.10 -m pip install --upgrade pip && \
+    python3.10 -m pip install --upgrade -r /requirements.txt --no-cache-dir && \
     rm /requirements.txt
 
 # Cache Models
 COPY builder/cache_models.py /cache_models.py
-RUN python /cache_models.py && rm /cache_models.py
+RUN rm -rf /runpod-volume/.cache/huggingface/hub/models--black-forest-labs--FLUX.1-schnell
+RUN python3 /cache_models.py && rm /cache_models.py
 
 # Add src files (Worker Template)
 ADD src .
 
-CMD [ "python", "-u", "/handler.py" ]
+CMD [ "python3", "-u", "/handler.py" ]

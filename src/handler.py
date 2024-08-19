@@ -59,7 +59,7 @@ def _save_and_upload_images(images, job_id):
         else:
             with open(image_path, "rb") as image_file:
                 image_data = base64.b64encode(image_file.read()).decode("utf-8")
-                image_urls.append(f"data:image/png;base64,{image_data}")
+                image_urls.append(f"{image_data}")
 
     rp_cleanup.clean([f"/{job_id}"])
     return image_urls
@@ -101,7 +101,6 @@ def generate_image(job):
 
     results = {
         "images": image_urls,
-        "image_url": image_urls[0],
         "seed": job_input["seed"],
     }
 
