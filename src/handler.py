@@ -2,15 +2,14 @@
 Contains the handler function that will be called by the serverless.
 """
 
-import os
 import base64
 import concurrent.futures
-
-import torch
-from diffusers import FluxPipeline
+import os
 
 import runpod
-from runpod.serverless.utils import rp_upload, rp_cleanup
+import torch
+from diffusers import FluxPipeline
+from runpod.serverless.utils import rp_cleanup, rp_upload
 from runpod.serverless.utils.rp_validator import validate
 
 from schemas import INPUT_SCHEMA
@@ -50,7 +49,7 @@ def _save_and_upload_images(images, job_id):
     os.makedirs(f"/{job_id}", exist_ok=True)
     image_urls = []
     for idx, image in enumerate(images):
-        image_path = os.path.join(f"/{job_id}", f"{idx}.png")
+        image_path = os.path.join(f"/{job_id}", f"{idx}.jpg")
         image.save(image_path)
 
         if os.environ.get("BUCKET_ENDPOINT_URL", False):
