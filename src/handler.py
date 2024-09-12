@@ -10,7 +10,8 @@ from threading import Lock
 
 import torch
 from diffusers import FluxPipeline
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from schemas import ApiRequest, ApiResponse, ImageGenerationResponse
 
@@ -18,6 +19,7 @@ from schemas import ApiRequest, ApiResponse, ImageGenerationResponse
 torch.cuda.empty_cache()
 
 app = FastAPI()
+security = HTTPBearer()
 mutex = Lock()
 # ------------------------------- Model Handler ------------------------------ #
 
@@ -60,9 +62,15 @@ def _convert_images_to_base64(images):
     return images_base64
 
 
+def get_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)):
+   if credentials.credentials != os.getenv("API_KEY"):
+      raise HTTPException(status_code=401, detail="Invalid API key")
+   return credentials.credentials
+
+
 @app.post("/generate_image")
 @torch.inference_mode()
-def generate_image(job: ApiRequest):
+def generate_image(job: ApiRequest, token: str = Depends(get_api_key)):
     """
     Generate an image from text using your Model
     """
