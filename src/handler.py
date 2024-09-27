@@ -6,6 +6,7 @@ import base64
 import concurrent.futures
 import io
 import os
+import signal
 from threading import Lock
 
 import torch
@@ -82,17 +83,21 @@ def generate_image(job: ApiRequest, token: str = Depends(get_api_key)):
     with mutex:
         generator = torch.Generator("cuda").manual_seed(job_input.seed)
 
-        # Generate latent image using pipe
-        images = MODEL.model(
-            prompt=job_input.prompt,
-            height=job_input.height,
-            width=job_input.width,
-            num_inference_steps=job_input.num_inference_steps,
-            num_images_per_prompt=job_input.num_images,
-            guidance_scale=0.0,
-            max_sequence_length=256,
-            generator=generator,
-        ).images
-
-        base64_images = _convert_images_to_base64(images)
-        return ApiResponse(output=ImageGenerationResponse(images=base64_images, seed=job_input.seed))
+        try:
+            # Generate latent image using pipe
+            images = MODEL.model(
+                prompt=job_input.prompt,
+                height=job_input.height,
+                width=job_input.width,
+                num_inference_steps=job_input.num_inference_steps,
+                num_images_per_prompt=job_input.num_images,
+                guidance_scale=0.0,
+                max_sequence_length=256,
+                generator=generator,
+            ).images
+            base64_images = _convert_images_to_base64(images)
+            return ApiResponse(output=ImageGenerationResponse(images=base64_images, seed=job_input.seed))
+        except torch.OutOfMemoryError as e:
+            print(e)
+            print("Shutting down the server...")
+            os.kill(os.getpid(), signal.SIGTERM)
