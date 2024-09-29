@@ -76,6 +76,8 @@ def generate_image(job: ApiRequest, token: str = Depends(get_api_key)):
     Generate an image from text using your Model
     """
     job_input = job.input
+    if job_input.num_images > 1 and (job_input.width > 3072 or job_input.height > 3072):
+        raise HTTPException(status_code=400, detail="Only one image allowed with width or height above 3K")
 
     if job_input.seed is None:
         job_input.seed = int.from_bytes(os.urandom(2), "big")
