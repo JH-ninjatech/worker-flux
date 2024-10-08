@@ -13,6 +13,8 @@ import torch
 from diffusers import FluxPipeline
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from PIL import Image, ImageDraw, ImageFont
+from transformers import pipeline
 
 from schemas import ApiRequest, ApiResponse, ImageGenerationResponse
 
@@ -48,7 +50,9 @@ class ModelHandler:
 
 
 MODEL = ModelHandler()
-
+NSFW_CLASSIFIER = pipeline("image-classification", model="Falconsai/nsfw_image_detection", device=0)
+NSFW_THRESHOLD = 0.02
+NSFW_MESSAGE = "Image violates Ninja's\ncontent policy"
 
 # ---------------------------------- Helper ---------------------------------- #
 def _convert_images_to_base64(images):
@@ -67,6 +71,24 @@ def get_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)):
    if credentials.credentials != os.getenv("API_KEY"):
       raise HTTPException(status_code=401, detail="Invalid API key")
    return credentials.credentials
+
+
+def filter_out_unsafe_images(images: list[Image]) -> list[Image]:
+    safe_images = []
+    for img in images:
+        result = NSFW_CLASSIFIER(img)
+        is_unsafe = any([elem["label"] == "nsfw" and elem["score"] > NSFW_THRESHOLD for elem in result])
+        if is_unsafe:
+            safe_img = Image.new('RGB', (img.width, img.height), color = (128, 128, 128))
+            draw = ImageDraw.Draw(safe_img)
+            font = ImageFont.load_default(48)
+            _, _, w, h = draw.textbbox((0, 0), NSFW_MESSAGE, font=font)
+            draw.text( ((img.width-w)/2, (img.height-h)/2), NSFW_MESSAGE, (255,255,255), font=font)
+            safe_images.append(safe_img)
+        else:
+            safe_images.append(img)
+
+    return safe_images
 
 
 @app.post("/generate_image")
@@ -97,7 +119,9 @@ def generate_image(job: ApiRequest, token: str = Depends(get_api_key)):
                 max_sequence_length=256,
                 generator=generator,
             ).images
-            base64_images = _convert_images_to_base64(images)
+            safe_images = filter_out_unsafe_images(images)
+            base64_images = _convert_images_to_base64(safe_images)
+
             return ApiResponse(output=ImageGenerationResponse(images=base64_images, seed=job_input.seed))
         except torch.OutOfMemoryError as e:
             print(e)
